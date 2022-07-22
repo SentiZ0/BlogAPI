@@ -3,6 +3,8 @@ using BlogAPI.Models.Validators;
 using FluentValidation;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<CategoryValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AuthorValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<PostValidator>();
 
+builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 
 builder.Services.AddControllers();
 

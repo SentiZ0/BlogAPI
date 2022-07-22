@@ -6,6 +6,6 @@
 
         public string Name { get; set; }
 
-        public ICollection<Post> Post { get; set; }
+        public ICollection<Post> Posts { get; set; }
     }
 }

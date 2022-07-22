@@ -1,8 +1,10 @@
 ﻿namespace BlogAPI.Models.ModelsDTO.Category
 {
-    public class CategoryDTO
+    public class GetCategoryDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }
+
+        //public List<PostDTO> Posts { get; set; } 
     }
 }

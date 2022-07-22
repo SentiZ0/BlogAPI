@@ -1,7 +1,14 @@
 ﻿using AutoMapper;
+using BlogAPI.Features.Category.Commands.Create;
+using BlogAPI.Features.Category.Commands.Delete;
+using BlogAPI.Features.Category.Commands.Update;
+using BlogAPI.Features.Category.Queries.Get;
+using BlogAPI.Features.Category.Queries.GetAll;
 using BlogAPI.Models;
 using BlogAPI.Models.ModelsDTO.Category;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Controllers
 {
@@ -9,82 +16,75 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
+        private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         private readonly BlogContext _context;
 
-        public CategoriesController(IMapper mapper, BlogContext context)
+        public CategoriesController(IMapper mapper, BlogContext context, IMediator mediator)
         {
             _mapper = mapper;
             _context = context;
+            _mediator = mediator;
         }
 
         [HttpGet]
-        public ActionResult GetAllCategories()
+        public async Task<ActionResult> GetAllCategories()
         {
-            var categories = _context.Categories.ToList();
+            var response = await _mediator.Send(new GetAllCategoryQuery());
 
-            return Ok(categories);
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public ActionResult GetSingleCategory(int id)
+        public async Task<ActionResult> GetSingleCategory(int id)
         {
-            var category = _context.Categories.Where(x => x.Id == id).FirstOrDefault(x => x.Id == id);
 
-            if(category == null)
+            var response = await _mediator.Send(new GetSingleCategoryQuery() { Id = id });
+
+            if (response == null)
             {
                 return NotFound();
             }
 
-            return Ok(category);
+            return Ok(response);
         }
 
         [HttpDelete]
-        public ActionResult DeleteCategory(int id)
+        public async Task<ActionResult> DeleteCategory(DeleteCategoryCommand command)
         {
-            var category = _context.Categories.Where(x => x.Id == id).FirstOrDefault(x => x.Id == id);
+            var response = await _mediator.Send(command);
 
-            if (category == null)
+            if(response == null)
             {
-                return NotFound();
+                return BadRequest();
             }
-
-            _context.Categories.Remove(category);
-            _context.SaveChanges();
 
             return Ok();
         }
 
         [HttpPut]
-        public ActionResult ModifyCategory(Category categoryDTO)
+        public async Task<ActionResult> ModifyCategory(UpdateCategoryCommand command)
         {
-            var category = _context.Categories.Where(x => x.Id == categoryDTO.Id).FirstOrDefault(x => x.Id == categoryDTO.Id);
+            var response = await _mediator.Send(command);
 
-            if(category == null)
-            {
-                return NotFound();
+            if(response == null)
+            { 
+                return BadRequest();
             }
-
-            category.Name = categoryDTO.Name;
-
-            _context.SaveChanges();
 
             return Ok();
         }
 
         [HttpPost]
-        public IActionResult CreateCategory(CategoryDTO categoryDTO)
+        public async Task<IActionResult> CreateCategory(CreateCategoryCommand command)
         {
-            if(categoryDTO == null)
+            var response = await _mediator.Send(command);
+
+            if (response == null)
             {
                 return BadRequest();
             }
-
-            var category = _mapper.Map<Category>(categoryDTO);
-
-            _context.Categories.Add(category);
-            _context.SaveChanges();
 
             return Ok();
         }

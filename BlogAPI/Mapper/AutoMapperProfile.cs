@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BlogAPI.Features.Category.Commands.Create;
 using BlogAPI.Models;
 using BlogAPI.Models.ModelsDTO.AuthorDTO;
 using BlogAPI.Models.ModelsDTO.Category;
@@ -10,9 +11,8 @@ namespace BlogAPI.Mapper
     {
         public AutoMapperProfile()
         {
-            CreateMap<CreateAuthorDTO, Author>();
-            CreateMap<CategoryDTO, Category>();
-            CreateMap<CreatePostDTO, Post>();
+            CreateMap<CreateCategoryCommand, Category>();
+            CreateMap<CreateCategoryCommand, Author>();
         }
     }
 }
