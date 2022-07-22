@@ -35,7 +35,9 @@ namespace BlogAPI.Controllers
                 {
                     Id = y.PostId,
                     Title = y.Post.Title,
-                    Description = y.Post.Description
+                    Description = y.Post.Description,
+                    CategoryId = y.Post.CategoryId,
+                    CategoryName = y.Post.Category.Name
                 }).ToList(),
             }).ToList();
 
@@ -56,7 +58,9 @@ namespace BlogAPI.Controllers
                 {
                     Id = y.Id,
                     Title = y.Post.Title,
-                    Description = y.Post.Description
+                    Description = y.Post.Description,
+                    CategoryId = y.Post.CategoryId,
+                    CategoryName = y.Post.Category.Name
                 }).ToList(),
             }).FirstOrDefault();
 
@@ -68,19 +72,21 @@ namespace BlogAPI.Controllers
         {
             var author = _context.Authors.Include(x => x.Author_Posts).FirstOrDefault(x => x.Id == id);
 
+            if (author == null)
+            {
+                return NotFound();
+            }
+
             var postIds = author.Author_Posts;
 
             foreach(var postId in postIds)
             {
-                var post = _context.Posts.FirstOrDefault(x => x.Id == postId.Id);
+                var post = _context.Posts.Include(x => x.Author_Posts).FirstOrDefault(x => x.Id == postId.PostId);
 
-                _context.Posts.Remove(post);
-                _context.SaveChanges();
-            }
-
-            if (author == null)
-            {
-                return NotFound();
+                if (post.Author_Posts.Count == 1)
+                {
+                    _context.Posts.Remove(post);
+                }
             }
 
             _context.Authors.Remove(author);

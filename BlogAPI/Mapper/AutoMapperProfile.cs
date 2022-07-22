@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using BlogAPI.Models;
 using BlogAPI.Models.ModelsDTO.AuthorDTO;
-using BlogAPI.Models.ModelsDTO.CategoryDTO;
+using BlogAPI.Models.ModelsDTO.Category;
 using BlogAPI.Models.ModelsDTO.PostDTO;
 
 namespace BlogAPI.Mapper

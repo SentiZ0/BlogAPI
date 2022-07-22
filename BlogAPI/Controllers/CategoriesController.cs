@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using BlogAPI.Models;
-using BlogAPI.Models.ModelsDTO.CategoryDTO;
+using BlogAPI.Models.ModelsDTO.Category;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogAPI.Controllers
@@ -57,7 +57,7 @@ namespace BlogAPI.Controllers
         }
 
         [HttpPut]
-        public ActionResult ModifyCategory(CategoryDTO categoryDTO)
+        public ActionResult ModifyCategory(Category categoryDTO)
         {
             var category = _context.Categories.Where(x => x.Id == categoryDTO.Id).FirstOrDefault(x => x.Id == categoryDTO.Id);
 

@@ -27,6 +27,5 @@ namespace BlogAPI.Models
                 .WithMany(ba => ba.Author_Posts)
                 .HasForeignKey(b1 => b1.PostId);
         }
-
     }
 }

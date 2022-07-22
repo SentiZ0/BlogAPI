@@ -1,4 +1,4 @@
-﻿namespace BlogAPI.Models.ModelsDTO.CategoryDTO
+﻿namespace BlogAPI.Models.ModelsDTO.Category
 {
     public class CategoryDTO
     {
