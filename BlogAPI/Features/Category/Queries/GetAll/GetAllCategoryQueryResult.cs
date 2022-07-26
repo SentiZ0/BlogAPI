@@ -23,6 +23,4 @@ namespace BlogAPI.Features.Category.Queries.GetAll
             public string Description { get; set; }
         }
     }
-
-   
 }

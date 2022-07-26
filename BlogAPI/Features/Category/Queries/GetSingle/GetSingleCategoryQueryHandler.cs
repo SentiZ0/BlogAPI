@@ -28,6 +28,11 @@ namespace BlogAPI.Features.Category.Queries.GetSingle
                 }).ToList()
             }).FirstOrDefault();
 
+            if (category == null)
+            {
+                return null;
+            }
+
             return Task.FromResult(new GetSingleCategoryQueryResult
             {
                 Category = category

@@ -1,17 +1,14 @@
 using BlogAPI.Models;
-using BlogAPI.Models.Validators;
 using FluentValidation;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
 using System.Reflection;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddFluentValidation(x => x.RegisterValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
 // Add services to the container.
-builder.Services.AddValidatorsFromAssemblyContaining<CategoryValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<AuthorValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<PostValidator>();
 
 builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 

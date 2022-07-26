@@ -16,9 +16,14 @@ namespace BlogAPI.Features.Author.Commands.Create
             _mapper = mapper;
         }
 
-        public Task<CreateAuthorCommandResult> Handle(CreateAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<CreateAuthorCommandResult> Handle(CreateAuthorCommand request, CancellationToken cancellationToken)
         {
-            
+            var author = _mapper.Map<Models.Author>(request);
+
+            _context.Authors.Add(author);
+            await _context.SaveChangesAsync();
+
+            return new CreateAuthorCommandResult();
         }
     }
 }

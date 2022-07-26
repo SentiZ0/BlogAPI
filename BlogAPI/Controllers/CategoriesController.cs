@@ -4,11 +4,8 @@ using BlogAPI.Features.Category.Commands.Delete;
 using BlogAPI.Features.Category.Commands.Update;
 using BlogAPI.Features.Category.Queries.Get;
 using BlogAPI.Features.Category.Queries.GetAll;
-using BlogAPI.Models;
-using BlogAPI.Models.ModelsDTO.Category;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Controllers
 {
@@ -17,14 +14,9 @@ namespace BlogAPI.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IMapper _mapper;
 
-        private readonly BlogContext _context;
-
-        public CategoriesController(IMapper mapper, BlogContext context, IMediator mediator)
+        public CategoriesController(IMediator mediator)
         {
-            _mapper = mapper;
-            _context = context;
             _mediator = mediator;
         }
 
@@ -39,8 +31,9 @@ namespace BlogAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> GetSingleCategory(int id)
         {
+            var command = new GetSingleCategoryQuery(id);
 
-            var response = await _mediator.Send(new GetSingleCategoryQuery() { Id = id });
+            var response = await _mediator.Send(command);
 
             if (response == null)
             {

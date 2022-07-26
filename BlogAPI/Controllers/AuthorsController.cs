@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
+using BlogAPI.Features.Author.Commands.Create;
+using BlogAPI.Features.Author.Commands.Delete;
+using BlogAPI.Features.Author.Commands.Update;
+using BlogAPI.Features.Author.Queries.GetAll;
+using BlogAPI.Features.Author.Queries.GetSingle;
 using BlogAPI.Models;
-using BlogAPI.Models.ModelsDTO.AuthorDTO;
-using BlogAPI.Models.ModelsDTO.PostDTO;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Controllers
 {
@@ -11,121 +14,72 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class AuthorsController : ControllerBase
     {
-        private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-        private readonly BlogContext _context;
-        public AuthorsController(IMapper mapper, BlogContext context)
+        public AuthorsController(IMediator mediator)
         {
-            _mapper = mapper;
-            _context = context;
+            _mediator = mediator;
         }
 
         [HttpGet]
-        public List<GetAuthorDTO> GetAllAuthors()
+        public async Task<ActionResult> GetAllAuthors()
         {
-            var authorDTO = _context.Authors.Select(x => new GetAuthorDTO
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Email = x.Email,
-                Age = x.Age,
-                Hobby = x.Hobby,
-                Job = x.Job,
-                AuthorPosts = x.Author_Posts.Select(y => new GetPostDTO
-                {
-                    Id = y.PostId,
-                    Title = y.Post.Title,
-                    Description = y.Post.Description,
-                    CategoryId = y.Post.CategoryId,
-                    CategoryName = y.Post.Category.Name
-                }).ToList(),
-            }).ToList();
+            var response = await _mediator.Send(new GetAllAuthorsQuery());
 
-            return authorDTO;
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public GetAuthorDTO GetSingleAuthor(int id)
+        public async Task<ActionResult> GetSingleAuthor(int id)
         {
-            var authorDTO = _context.Authors.Where(x => x.Id == id).Select(x => new GetAuthorDTO
-            {
-                Name = x.Name,
-                Email = x.Email,
-                Age = x.Age,
-                Hobby = x.Hobby,
-                Job = x.Job,
-                AuthorPosts = x.Author_Posts.Select(y => new GetPostDTO
-                {
-                    Id = y.Id,
-                    Title = y.Post.Title,
-                    Description = y.Post.Description,
-                    CategoryId = y.Post.CategoryId,
-                    CategoryName = y.Post.Category.Name
-                }).ToList(),
-            }).FirstOrDefault();
+            var query = new GetSingleAuthorQuery(id);
+            var response = await _mediator.Send(query);
 
-            return authorDTO;
+            if (response == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(response);
         }
 
         [HttpDelete]
-        public IActionResult DeleteAuthor(int id)
+        public async Task<ActionResult> DeleteAuthor(DeleteAuthorCommand command)
         {
-            var author = _context.Authors.Include(x => x.Author_Posts).FirstOrDefault(x => x.Id == id);
+            var response = await _mediator.Send(command);
 
-            if (author == null)
+            if (response == null)
             {
-                return NotFound();
+                return BadRequest();
             }
-
-            var postIds = author.Author_Posts;
-
-            foreach(var postId in postIds)
-            {
-                var post = _context.Posts.Include(x => x.Author_Posts).FirstOrDefault(x => x.Id == postId.PostId);
-
-                if (post.Author_Posts.Count == 1)
-                {
-                    _context.Posts.Remove(post);
-                }
-            }
-
-            _context.Authors.Remove(author);
-            _context.SaveChanges();
 
             return Ok();
         }
 
         [HttpPut]
-        public IActionResult ModifyAuthor(UpdateAuthorDTO authorDTO)
+        public async Task<ActionResult> ModifyAuthor(UpdateAuthorCommand command)
         {
-            var author = _context.Authors.FirstOrDefault(x => x.Id == authorDTO.Id);
+            var repsonse = await _mediator.Send(command);
 
-            if(author == null)
+            if (repsonse == null)
             {
-                return NotFound();
+                return BadRequest();
             }
-
-            author.Name = authorDTO.Name;
-            author.Email = authorDTO.Email;
-            author.Age = authorDTO.Age;
-            author.Hobby = authorDTO.Hobby;
-            author.Job = authorDTO.Job;
-
-            _context.SaveChanges();
 
             return Ok();
         }
 
         [HttpPost]
-        public Author CreateAuthor(CreateAuthorDTO authorDTO)
+        public async Task<ActionResult> CreateAuthor(CreateAuthorCommand command)
         {
-            var author = _mapper.Map<Author>(authorDTO);
+            var response = await _mediator.Send(command);
 
-            _context.Add(author);
+            if (response == null)
+            {
+                return BadRequest();
+            }
 
-            _context.SaveChanges();
-
-            return author;
+            return Ok();
         }
     }
 }

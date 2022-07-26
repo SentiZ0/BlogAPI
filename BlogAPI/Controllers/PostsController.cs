@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
-using BlogAPI.Models;
-using BlogAPI.Models.ModelsDTO.PostDTO;
+using BlogAPI.Features.Post.Commands.Create;
+using BlogAPI.Features.Post.Commands.Delete;
+using BlogAPI.Features.Post.Commands.Update;
+using BlogAPI.Features.Post.Queries.GetAll;
+using BlogAPI.Features.Post.Queries.GetSingle;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Controllers
 {
@@ -10,137 +13,66 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class PostsController : ControllerBase
     {
-        private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-        private readonly BlogContext _context;
-
-        public PostsController(IMapper mapper, BlogContext context)
+        public PostsController(IMediator mediator)
         {
-            _mapper = mapper;
-            _context = context;
+            _mediator = mediator;
         }
 
         [HttpGet]
-        public ActionResult<List<GetPostDTO>> GetAllPosts()
+        public async Task<ActionResult> GetAllPosts()
         {
-            var posts = _context.Posts.Select(x => new GetPostDTO
-            {
-                Id = x.Id,
-                Title = x.Title,
-                Description = x.Description,
-                CategoryId = x.CategoryId,
-                CategoryName = x.Category.Name
-            }).ToList();
+            var response = await _mediator.Send(new GetAllPostsQuery());
 
-            if(posts == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(posts);
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<GetPostDTO> GetSinglePost(int id)
+        public async Task<ActionResult> GetSinglePost(int id)
         {
+            var command = new GetSinglePostQuery(id);
 
-            var post = _context.Posts.Where(x => x.Id == id).Select(x => new GetPostDTO
-            {
-                Id = x.Id,
-                Title = x.Title,
-                Description = x.Description,
-                CategoryId = x.CategoryId,
-                CategoryName = x.Category.Name
-                
-            }).FirstOrDefault(x => x.Id == id);
+            var response = await _mediator.Send(command);
 
-            if (post == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(post);
+            return Ok(response);
         }
 
         [HttpDelete]
-        public ActionResult DeletePost(int id)
+        public ActionResult DeletePost(DeletePostCommand command)
         {
-            var post = _context.Posts.Where(x => x.Id == id).FirstOrDefault(x => x.Id == id);
+            var response = _mediator.Send(command);
 
-            if (post == null)
+            if (response == null)
             {
-                return NotFound();
+                return BadRequest();
             }
-            _context.Posts.Remove(post);
-
-            _context.SaveChanges();
 
             return Ok();
         }
 
         [HttpPut]
-        public ActionResult ModifyPost(UpdatePostDTO postDTO)
+        public ActionResult ModifyPost(UpdatePostCommand command)
         {
-            var authors = _context.Authors.AsNoTracking().Where(x => postDTO.AuthorIds.Contains(x.Id)).Select(x => x.Id).ToList();
+            var response = _mediator.Send(command);
 
-            if (authors.Count != postDTO.AuthorIds.Count)
+            if (response == null)
             {
                 return BadRequest();
             }
-
-            var category = _context.Categories.AsNoTracking().FirstOrDefault(x => x.Id == postDTO.CategoryId);
-
-            if (category == null)
-            {
-                return BadRequest();
-            }
-
-            var post = _context.Posts.Where(x => x.Id == postDTO.Id).Include(a => a.Author_Posts).FirstOrDefault(x => x.Id == postDTO.Id);
-
-            post.Title = postDTO.Title;
-            post.Description = postDTO.Description;
-            post.CategoryId = postDTO.CategoryId;
-
-            post.Author_Posts.Clear();
-
-            post.Author_Posts = authors.Select(x => new Author_Post
-            {
-                AuthorId = x
-            }).ToList();
-
-            _context.SaveChanges();
 
             return Ok();
-
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePost(CreatePostDTO postDTO)
+        public async Task<ActionResult> CreatePost(CreatePostCommand command)
         {
-            var authors = await _context.Authors.AsNoTracking().Where(x => postDTO.AuthorIds.Contains(x.Id)).Select(x => x.Id).ToListAsync();
+            var response = await _mediator.Send(command);
 
-            if (authors.Count != postDTO.AuthorIds.Count)
+            if (response == null)
             {
                 return BadRequest();
             }
-
-            var category = await _context.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Id == postDTO.CategoryId);
-
-            if (category == null)
-            {
-                return BadRequest();
-            }
-
-            var post = _mapper.Map<Post>(postDTO);
-
-            post.Author_Posts = authors.Select(x => new Author_Post
-            {
-                AuthorId = x
-            }).ToList();
-
-            _context.Add(post);
-
-            _context.SaveChanges();
 
             return Ok();
         }
